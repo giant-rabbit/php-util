@@ -1,0 +1,18 @@
+{
+  "authors": [
+    {"name": "Peter Haight", "email": "peterh@giantrabbit.com"}
+  ],
+  "autoload": {
+    "psr-0": { "GR\\": "lib/" }
+  },
+  "description": "Some PHP functions we use a lot.",
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.0.x-dev"
+    }
+  },
+  "homepage": "https://github.com/giant-rabbit/php-util",
+  "license": "MIT",
+  "name": "giant-rabbit/php-util",
+  "version": "1.0.0@dev"
+}

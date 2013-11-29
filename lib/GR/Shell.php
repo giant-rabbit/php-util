@@ -1,10 +1,10 @@
 <?php
 
-require_once(dirname(__FILE__) . "/array.php");
+namespace GR;
 
 class Shell
 {
-  function run_command($command, $options = array())
+  static function command($command, $options = array())
   {
     $options['throw_exception_on_nonzero'] = array_fetch($options, 'throw_exception_on_nonzero', TRUE);
     $options['print_command'] = array_fetch($options, 'print_command', FALSE);
