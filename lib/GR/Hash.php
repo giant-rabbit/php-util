@@ -4,7 +4,7 @@ namespace GR;
 
 class Hash
 {
-  function fetch($array, $index, $default = NULL)
+  static function fetch($array, $index, $default = NULL)
   {
       if (array_key_exists($index, $array))
       {
