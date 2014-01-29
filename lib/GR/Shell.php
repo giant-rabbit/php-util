@@ -6,9 +6,9 @@ class Shell
 {
   static function command($command, $options = array())
   {
-    $options['throw_exception_on_nonzero'] = array_fetch($options, 'throw_exception_on_nonzero', TRUE);
-    $options['print_command'] = array_fetch($options, 'print_command', FALSE);
-    $options['input'] = array_fetch($options, 'input', NULL);
+    $options['throw_exception_on_nonzero'] = Hash::fetch($options, 'throw_exception_on_nonzero', TRUE);
+    $options['print_command'] = Hash::fetch($options, 'print_command', FALSE);
+    $options['input'] = Hash::fetch($options, 'input', NULL);
     if ($options['print_command'])
     {
       print("$command\n");
