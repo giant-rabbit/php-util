@@ -1,6 +1,7 @@
 <?php
 
 namespace GR;
+use \Exception as Exception;
 
 class Shell
 {
