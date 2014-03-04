@@ -1,9 +1,10 @@
-<?php
-namespace GR ;
+<?php 
 
-class Parser {
+namespace GR;
 
-  public static function parse_wp_config($path) {
+class Wordpress {
+
+  public static function parse_config($path) {
     $a = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ;
     $ret = array() ;
     foreach ($a as $ln) {
@@ -23,11 +24,15 @@ class Parser {
     return $ret ;
   }
   
-  public static function parse_drupal_settings($path) {
-    include($path) ;
-    $ret = array() ;
-    
-    $ret['databases'] = $databases ;
-    return $ret ;
+  public static function get_database_credentials($root=false){
+    $root = $root ?: getcwd();
+    $f = $root . "/wp-config.php" ;
+    $parsed = Wordpress::parse_config($f) ;
+    return array(
+      'host' => $parsed['constants']['DB_HOST'] ,
+      'username' => $parsed['constants']['DB_USER'] ,
+      'password' => $parsed['constants']['DB_PASSWORD'] ,
+      'database' => $parsed['constants']['DB_NAME'] ,
+    );
   }
 }
