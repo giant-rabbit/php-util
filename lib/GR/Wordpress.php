@@ -35,4 +35,15 @@ class Wordpress {
       'database' => $parsed['constants']['DB_NAME'] ,
     );
   }
+  
+  public static function get_database_connection($root=false, $options=null) {
+    $root = $root ?: getcwd();
+    $creds = Wordpress::get_database_credentials($root) ;
+    extract($creds) ;
+    $dsn = "mysql:host={$host};dbname={$database}" ;
+    $dbh = new \PDO($dsn, $username, $password, $options) ;
+    $dbh->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION ); 
+    $dbh->setAttribute( \PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC );
+    return $dbh ;
+  }
 }

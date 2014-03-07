@@ -13,6 +13,6 @@ class DrupalTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals($creds['database'], 'drupal_database_name', 'database name should equal `drupal_database_name`') ;
     $this->assertEquals($creds['username'], 'drupal_database_user', 'database username should equal `drupal_database_user`') ;
     $this->assertEquals($creds['password'], 'drupal_database_password', 'database name should equal `drupal_database_password`') ;
-  }
+  } 
 }
 
