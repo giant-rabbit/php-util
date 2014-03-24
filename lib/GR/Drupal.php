@@ -26,7 +26,7 @@ class Drupal {
 
   public static function get_database_connection($root=false, $options=null) {
     $root = $root ?: getcwd();
-    $creds = $this->get_database_credentials($root) ;
+    $creds = Drupal::get_database_credentials($root) ;
     extract($creds) ;
     $dsn = "mysql:host={$host};dbname={$database}" ;
     $dbh = new \PDO($dsn, $username, $password, $options) ;
