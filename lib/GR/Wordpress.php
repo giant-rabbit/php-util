@@ -28,12 +28,16 @@ class Wordpress {
     $root = $root ?: getcwd();
     $f = $root . "/wp-config.php" ;
     $parsed = Wordpress::parse_config($f) ;
-    return array(
-      'host' => $parsed['constants']['DB_HOST'] ,
-      'username' => $parsed['constants']['DB_USER'] ,
-      'password' => $parsed['constants']['DB_PASSWORD'] ,
-      'database' => $parsed['constants']['DB_NAME'] ,
-    );
+    $ret = false;
+    if ($parsed) {
+      $ret = array(
+        'host' => $parsed['constants']['DB_HOST'] ,
+        'username' => $parsed['constants']['DB_USER'] ,
+        'password' => $parsed['constants']['DB_PASSWORD'] ,
+        'database' => $parsed['constants']['DB_NAME'] ,
+      );
+    }
+    return $ret;
   }
   
   public static function get_database_connection($root=false, $options=null) {
