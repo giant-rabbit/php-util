@@ -8,7 +8,25 @@ class Drupal {
     include($path) ;
     $ret = array() ;
     
-    $ret['databases'] = $databases ;
+    if (isset($databases)) {
+      $ret['databases'] = $databases ;
+    } elseif ($db_url) {
+      $regex = "|^mysqli://(.*?):(.*?)@(.*?)/(.*?)$|";
+      $matches = array();
+      preg_match($regex, $db_url, $matches);
+      if (!empty($matches)) {
+        $ret['databases'] = array(
+          'default' => array(
+            'default' => array(
+              'username' => $matches[1],
+              'password' => $matches[2],
+              'host'     => $matches[3],
+              'database' => $matches[4]
+            )
+          )
+        );
+      }
+    }
     return $ret ;
   }
   
@@ -16,12 +34,13 @@ class Drupal {
     $root = $root ?: getcwd();
     $f = $root . "/sites/default/settings.php" ;
     $parsed = Drupal::parse_drupal_settings($f) ;
+    
     return array(
       'host'     => $parsed['databases']['default']['default']['host'] ,
       'username' => $parsed['databases']['default']['default']['username'] ,
       'password' => $parsed['databases']['default']['default']['password'] ,
       'database' => $parsed['databases']['default']['default']['database'] ,
-    );
+    );    
   }
 
   public static function get_database_connection($root=false, $options=null) {
