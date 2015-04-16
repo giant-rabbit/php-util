@@ -17,6 +17,11 @@ class ServerEnv {
       // Newer versions of Ubuntu add a .conf to the end of vhost config files.
       $this->vhost_config_path = "{$this->vhost_config_path}.conf";
       $file_exists = file_exists($this->vhost_config_path);
+      $site_root_pathinfo = pathinfo($this->site_root);
+      if (!$file_exists && $site_root_pathinfo['basename'] == 'htdocs') {
+        $this->vhost_config_path = self::getConfPathFromSiteRoot($site_root_pathinfo['dirname']);
+        $file_exists = $this->apacheConfFileExists();
+      }
     }
     return $file_exists;
   }
