@@ -8,33 +8,39 @@ class ServerEnv {
 
   public function __construct($site_root) {
     $this->site_root = $site_root;
-    $this->vhost_config_path = self::getConfPathFromSiteRoot($site_root);
   }
 
-  public function apacheConfFileExists() {
-    $file_exists = file_exists($this->vhost_config_path);
-    if (!$file_exists) {
-      // Newer versions of Ubuntu add a .conf to the end of vhost config files.
-      $this->vhost_config_path = "{$this->vhost_config_path}.conf";
-      $file_exists = file_exists($this->vhost_config_path);
-      $site_root_pathinfo = pathinfo($this->site_root);
-      if (!$file_exists && $site_root_pathinfo['basename'] == 'htdocs') {
-        $this->vhost_config_path = self::getConfPathFromSiteRoot($site_root_pathinfo['dirname']);
-        $file_exists = $this->apacheConfFileExists();
+  public function findApacheConfFile() {
+    $apache_site_enabled_dir_path = "/etc/apache2/sites-enabled";
+    $dir = opendir($apache_site_enabled_dir_path);
+    if ($dir === FALSE) {
+      throw new Exception("Error opening directory '$apache_site_enabled_dir_path': " . print_r(error_get_last(), TRUE));
+    }
+    while (($file_name = readdir($dir)) !== FALSE) {
+      $path = "$apache_site_enabled_dir_path/$file_name";
+      if (!is_file($path)) {
+	continue;
+      }
+      $contents = file_get_contents($path);
+      $escaped_site_root = preg_quote($this->site_root, "/");
+      $result = preg_match("/DocumentRoot\s*{$escaped_site_root}\s*$/m", $contents);
+      if ($result === 1) {
+	$this->vhost_config_path = $path;
+	return TRUE;
       }
     }
-    return $file_exists;
+    return FALSE;
   }
 
   public function requireApacheConfFile() {
-    if (!$this->apacheConfFileExists()) {
+    if (!$this->findApacheConfFile()) {
       throw new \Exception("No apache virtualhost configuration file exists at {$this->vhost_config_path}.");
     }
   }
 
   public function setEnvVars() {
     $conf = new \Config();
-    if ($this->apacheConfFileExists()) {
+    if ($this->findApacheConfFile()) {
       $vhost_config_root = $conf->parseConfig($this->vhost_config_path, 'apache');
       $vhost_config = $vhost_config_root->getItem('section', 'VirtualHost');
       $i = 0;
@@ -48,10 +54,4 @@ class ServerEnv {
       }
     }
   }
-
-  public static function getConfPathFromSiteRoot($site_root) {
-    $vhost_config_file_name = basename($site_root);
-    return "/etc/apache2/sites-enabled/{$vhost_config_file_name}";
-  }
-
 }
