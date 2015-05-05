@@ -19,11 +19,11 @@ class ServerEnv {
     while (($file_name = readdir($dir)) !== FALSE) {
       $path = "$apache_site_enabled_dir_path/$file_name";
       if (!is_file($path)) {
-	continue;
+        continue;
       }
       $contents = file_get_contents($path);
       $escaped_site_root = preg_quote($this->site_root, "/");
-      $result = preg_match("/DocumentRoot\s*{$escaped_site_root}\s*$/m", $contents);
+      $result = preg_match("/DocumentRoot\s*{$escaped_site_root}\/?\s*$/m", $contents);
       if ($result === 1) {
 	$this->vhost_config_path = $path;
 	return TRUE;
