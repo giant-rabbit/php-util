@@ -11,17 +11,17 @@ class Drupal {
     if (isset($databases)) {
       $ret['databases'] = $databases ;
     } elseif ($db_url) {
-      $regex = "|^mysqli://(.*?):(.*?)@(.*?)/(.*?)$|";
+      $regex = "|^(.*?)://(.*?):(.*?)@(.*?)/(.*?)$|";
       $matches = array();
       preg_match($regex, $db_url, $matches);
       if (!empty($matches)) {
         $ret['databases'] = array(
           'default' => array(
             'default' => array(
-              'username' => $matches[1],
-              'password' => $matches[2],
-              'host'     => $matches[3],
-              'database' => $matches[4]
+              'username' => $matches[2],
+              'password' => $matches[3],
+              'host'     => $matches[4],
+              'database' => $matches[5]
             )
           )
         );
