@@ -5,6 +5,7 @@ namespace GR;
 class ServerEnv {
   public $site_root;
   public $vhost_config_path;
+  public $vhost_config_contents;
 
   public function __construct($site_root) {
     $this->site_root = $site_root;
@@ -25,8 +26,9 @@ class ServerEnv {
       $escaped_site_root = preg_quote($this->site_root, "/");
       $result = preg_match("/DocumentRoot\s*{$escaped_site_root}\/?\s*$/m", $contents);
       if ($result === 1) {
-	$this->vhost_config_path = $path;
-	return TRUE;
+        $this->vhost_config_path = $path;
+        $this->vhost_config_contents = $contents;
+        return TRUE;
       }
     }
     return FALSE;
@@ -39,19 +41,33 @@ class ServerEnv {
   }
 
   public function setEnvVars() {
-    $conf = new \Config();
-    if ($this->findApacheConfFile()) {
-      $vhost_config_root = $conf->parseConfig($this->vhost_config_path, 'apache');
-      $vhost_config = $vhost_config_root->getItem('section', 'VirtualHost');
-      $i = 0;
-      while ($item = $vhost_config->getItem('directive', 'SetEnv', NULL, NULL, $i++)) {
-        $env_variable = explode(' ', $item->content);
-        if ($env_variable[0] == 'APP_ENV' || $env_variable[0] == 'APP_NAME') {
-          if (putenv("{$env_variable[0]}={$env_variable[1]}") === FALSE) {
-            throw new \Exception("Unable to set {$env_variable[0]} environment variable.");
-          }
+    if ($contents = $this->findApacheConfFile()) {
+      $env_vars = $this->getEnvVars();
+      if ($env_vars === FALSE) {
+        throw new \Exception("Unable to find environment variables the Apache configuration file.");
+      }
+      foreach ($env_vars as $env_var_name => $env_var_value) {
+        if (putenv("{$env_var_name}={$env_var_value}") === FALSE) {
+          throw new \Exception("Unable to set {$env_var_name} environment variable.");
         }
       }
     }
+  }
+
+  public function getEnvVars() {
+    $pattern = preg_quote('SetEnv', '/');
+    $pattern = "/^.*$pattern.*\$/m";
+    if (preg_match_all($pattern, $this->vhost_config_contents, $matches) > 1) {
+      $env_vars = array();
+      foreach ($matches[0] as $match) {
+        $match = trim($match);
+        $env_var = explode(' ', $match);
+        $env_vars[$env_var[1]] = $env_var[2];
+      }
+
+      return $env_vars;
+    }
+
+    return FALSE;
   }
 }
