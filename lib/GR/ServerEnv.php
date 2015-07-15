@@ -41,7 +41,7 @@ class ServerEnv {
   }
 
   public function setEnvVars() {
-    if ($contents = $this->findApacheConfFile()) {
+    if ($this->findApacheConfFile()) {
       $env_vars = $this->getEnvVars();
       if ($env_vars === FALSE) {
         throw new \Exception("Unable to find environment variables the Apache configuration file.");
