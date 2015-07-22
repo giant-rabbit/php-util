@@ -40,11 +40,15 @@ class ServerEnv {
     }
   }
 
-  public function setEnvVars() {
-    if ($this->findApacheConfFile()) {
+  public function setEnvVars($throw_exception = TRUE) {
+    if ($contents = $this->findApacheConfFile()) {
       $env_vars = $this->getEnvVars();
       if ($env_vars === FALSE) {
-        throw new \Exception("Unable to find environment variables the Apache configuration file.");
+        if ($throw_exception === TRUE) {
+          throw new \Exception("Unable to find environment variables in the Apache configuration file.");
+        }
+
+        return FALSE;
       }
       foreach ($env_vars as $env_var_name => $env_var_value) {
         if (putenv("{$env_var_name}={$env_var_value}") === FALSE) {
