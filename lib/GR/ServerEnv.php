@@ -15,7 +15,7 @@ class ServerEnv {
     $apache_site_enabled_dir_path = "/etc/apache2/sites-enabled";
     $dir = opendir($apache_site_enabled_dir_path);
     if ($dir === FALSE) {
-      throw new Exception("Error opening directory '$apache_site_enabled_dir_path': " . print_r(error_get_last(), TRUE));
+      throw new \Exception("Error opening directory '$apache_site_enabled_dir_path': " . print_r(error_get_last(), TRUE));
     }
     while (($file_name = readdir($dir)) !== FALSE) {
       $path = "$apache_site_enabled_dir_path/$file_name";
