@@ -13,9 +13,9 @@ class ServerEnv {
 
   public function findApacheConfFile() {
     $apache_site_enabled_dir_path = "/etc/apache2/sites-enabled";
-    $dir = opendir($apache_site_enabled_dir_path);
+    $dir = @opendir($apache_site_enabled_dir_path);
     if ($dir === FALSE) {
-      throw new \Exception("Error opening directory '$apache_site_enabled_dir_path': " . print_r(error_get_last(), TRUE));
+      return FALSE;
     }
     while (($file_name = readdir($dir)) !== FALSE) {
       $path = "$apache_site_enabled_dir_path/$file_name";
@@ -55,6 +55,8 @@ class ServerEnv {
           throw new \Exception("Unable to set {$env_var_name} environment variable.");
         }
       }
+    } else {
+      return FALSE;
     }
   }
 
