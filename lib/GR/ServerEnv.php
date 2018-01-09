@@ -40,8 +40,17 @@ class ServerEnv {
     }
   }
 
+  public function getApacheConfFileContents() {
+    $contents = $this->vhost_config_contents;
+    if ($contents === NULL) {
+      $contents = $this->findApacheConfFile();
+    }
+
+    return $contents;
+  }
+
   public function setEnvVars($throw_exception = TRUE) {
-    if ($contents = $this->findApacheConfFile()) {
+    if ($contents = $this->getApacheConfFileContents()) {
       $env_vars = $this->getEnvVars();
       if ($env_vars === FALSE) {
         if ($throw_exception === TRUE) {
@@ -75,5 +84,31 @@ class ServerEnv {
     }
 
     return FALSE;
+  }
+
+  public function setServerHttpHost() {
+    if ($contents = $this->getApacheConfFileContents()) {
+      $server_name = $this->getServerName();
+      if ($server_name === FALSE) {
+        throw new \Exception("Unable to set server HTTP_HOST as the ServerName in the Apache config file could not be determined.");
+      }
+      putenv("HTTP_HOST={$server_name}");
+    }
+  }
+
+  public function getServerName() {
+    $server_name = FALSE;
+    $pattern = preg_quote('ServerName', '/');
+    $pattern = "/^.*$pattern.*\$/m";
+    if (preg_match_all($pattern, $this->vhost_config_contents, $matches) > 1) {
+      foreach ($matches[0] as $match) {
+        $match = trim($match);
+        $server_name_array = explode(' ', $match);
+        $server_name = $server_name_array[1];
+        break;
+      }
+    }
+
+    return $server_name;
   }
 }
