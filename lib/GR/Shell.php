@@ -5,7 +5,12 @@ use \Exception as Exception;
 
 class Shell
 {
-  static function command($command, $options = array())
+  static function command($command, $options = array()) {
+    $shell = new static();
+    return $shell->run($command, $options);
+  }
+
+  function run($command, $options = array())
   {
     $options['throw_exception_on_nonzero'] = Hash::fetch($options, 'throw_exception_on_nonzero', TRUE);
     $options['print_command'] = Hash::fetch($options, 'print_command', FALSE);
