@@ -24,7 +24,7 @@ class ServerEnv {
       }
       $contents = file_get_contents($path);
       $escaped_site_root = preg_quote($this->site_root, "/");
-      $result = preg_match("/DocumentRoot\s*{$escaped_site_root}\/?\s*$/m", $contents);
+      $result = preg_match("/DocumentRoot\s*{$escaped_site_root}(\/web)?\/?\s*$/m", $contents);
       if ($result === 1) {
         $this->vhost_config_path = $path;
         $this->vhost_config_contents = $contents;
