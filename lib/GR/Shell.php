@@ -45,7 +45,7 @@ class Shell
       $read_streams = array($pipes[1], $pipes[2]);
       $write_streams = null;
       $exceptions = null;
-      $result = stream_select($read_streams, $write_streams, $exceptions, 5);
+      $result = stream_select($read_streams, $write_streams, $exceptions, 20);
       if ($result === FALSE)
       {
         throw new Exception("Error running stream_select on pipe.");
