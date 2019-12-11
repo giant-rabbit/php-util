@@ -3,6 +3,18 @@
 namespace GR;
 use \Exception as Exception;
 
+class PipeHandler {
+  public $pipe;
+  public $data = '';
+  public $name;
+  public $done = FALSE;
+
+  function __construct($pipe, $name) {
+    $this->pipe = $pipe;
+    $this->name = $name;
+  }
+}
+
 class Shell
 {
   static function command($command, $options = array()) {
@@ -31,21 +43,21 @@ class Shell
       throw new Exception("Unable to proc_open($command).");
     } 
     stream_set_blocking($pipes[1], FALSE);
+    stream_set_blocking($pipes[2], FALSE);
     if ($options['input'])
     {
       fwrite($pipes[0], $options['input']);
-      fclose($pipes[0]);
     }
-    $stdout_data = '';
-    $stderr_data = '';
-    $stdout_done = FALSE;
-    $stderr_done = FALSE;
-    while (!$stdout_done && !$stderr_done)
+    fclose($pipes[0]);
+    $pipe_handlers = [];
+    $pipe_handlers[] = new PipeHandler($pipes[1], 'stdout');
+    $pipe_handlers[] = new PipeHandler($pipes[2], 'stderr');
+    while (!$pipe_handlers[0]->done && !$pipe_handlers[1]->done)
     {
       $read_streams = array($pipes[1], $pipes[2]);
       $write_streams = null;
       $exceptions = null;
-      $result = stream_select($read_streams, $write_streams, $exceptions, 20);
+      $result = stream_select($read_streams, $write_streams, $exceptions, NULL);
       if ($result === FALSE)
       {
         throw new Exception("Error running stream_select on pipe.");
@@ -54,49 +66,27 @@ class Shell
       { 
         foreach ($read_streams as $read_stream)
         {
-          if ($read_stream == $pipes[1]) 
+          $pipe_handler = $pipe_handlers[0];
+	  if ($read_stream == $pipe_handlers[1]->pipe) {
+	    $pipe_handler = $pipe_handlers[1];
+	  }
+          $result = fgets($read_stream);
+          if ($result === FALSE)
           {
-            $result = fgets($read_stream);
-            if ($result === FALSE)
+            if (!feof($read_stream))
             {
-              if (!feof($read_stream))
-              {
-                throw new Exception("Error reading from proc_open($command) stderr stream.");
-              }
-              else
-              {
-                $stdout_done = TRUE;
-              }
+              throw new Exception("Error reading from proc_open($command) {$pipe_handler->name} stream.");
             }
             else
             {
-              $stdout_data .= $result;
+              $pipe_handler->done = TRUE;
             }
           }
-          elseif ($read_stream == $pipes[2])
+          else
           {
-            $result = fgets($read_stream);
-            if ($result === FALSE)
-            {
-              if (!feof($read_stream))
-              {
-                throw new Exception("Error reading from proc_open($command) stderr stream.");
-              }
-              else
-              {
-                $stderr_done = TRUE;
-              }
-            }
-            else
-            {
-              $stderr_data .= $result;
-            }
+	    $pipe_handler->data .= $result;
           }
         }
-      }
-      else
-      {
-        break;
       }
     }
     fclose($pipes[1]);
@@ -104,8 +94,8 @@ class Shell
     $return_value = proc_close($process);
     if ($return_value != 0 && $options['throw_exception_on_nonzero'])
     {
-      throw new Exception("Error running '$command'. Non-zero return value ($return_value)\nstdout:\n$stdout_data\nstderr\n$stderr_data");
+      throw new Exception("Error running '$command'. Non-zero return value ($return_value)\nstdout:{$pipe_handlers[0]->data}\nstderr:{$pipe_handlers[1]->data}");
     }
-    return array($stdout_data, $stderr_data);
+    return array($pipe_handlers[0]->data, $pipe_handlers[1]->data);
   }
 }
