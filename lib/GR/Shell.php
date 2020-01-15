@@ -24,7 +24,11 @@ class Shell
 
   function run($command, $options = array())
   {
-    $options['throw_exception_on_nonzero'] = Hash::fetch($options, 'throw_exception_on_nonzero', TRUE);
+    $options['acceptable_return_values'] = Hash::fetch($options, 'acceptable_return_values', array(0));
+    $options['throw_exception_on_nonzero'] = Hash::fetch($options, 'throw_exception_on_nonzero', FALSE);
+    if ($options['throw_exception_on_nonzero']) {
+      $options['acceptable_return_values'] = array(0);
+    }
     $options['print_command'] = Hash::fetch($options, 'print_command', FALSE);
     $options['input'] = Hash::fetch($options, 'input', NULL);
     if ($options['print_command'])
@@ -92,9 +96,17 @@ class Shell
     fclose($pipes[1]);
     fclose($pipes[2]);
     $return_value = proc_close($process);
-    if ($return_value != 0 && $options['throw_exception_on_nonzero'])
+
+    $acceptable_return_value = false;
+    foreach($options['acceptable_return_values'] as $acceptable_return_value) {
+      if ($return_value == $acceptable_return_value) {
+        $acceptable_return_value = true;
+        break;
+      }
+    }
+    if (! $acceptable_return_value)
     {
-      throw new Exception("Error running '$command'. Non-zero return value ($return_value)\nstdout:{$pipe_handlers[0]->data}\nstderr:{$pipe_handlers[1]->data}");
+      throw new Exception("Error running '$command'. Unacceptable return value ($return_value)\nstdout:{$pipe_handlers[0]->data}\nstderr:{$pipe_handlers[1]->data}");
     }
     return array($pipe_handlers[0]->data, $pipe_handlers[1]->data);
   }
