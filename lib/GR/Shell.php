@@ -25,7 +25,7 @@ class Shell
   function run($command, $options = array())
   {
     $options['acceptable_return_values'] = Hash::fetch($options, 'acceptable_return_values', array(0));
-    $options['throw_exception_on_nonzero'] = Hash::fetch($options, 'throw_exception_on_nonzero', FALSE);
+    $options['throw_exception_on_nonzero'] = Hash::fetch($options, 'throw_exception_on_nonzero', TRUE);
     if ($options['throw_exception_on_nonzero']) {
       $options['acceptable_return_values'] = array(0);
     }
