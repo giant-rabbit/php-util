@@ -105,7 +105,7 @@ class Shell
       }
     }
 
-    if ($option['throw_exception_on_nonzero'] && !$acceptable_return_value)
+    if ($options['throw_exception_on_nonzero'] && !$acceptable_return_value)
     {
       throw new Exception("Error running '$command'. Unacceptable return value ($return_value)\nstdout:{$pipe_handlers[0]->data}\nstderr:{$pipe_handlers[1]->data}");
     }
