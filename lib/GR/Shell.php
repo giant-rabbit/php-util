@@ -3,6 +3,17 @@
 namespace GR;
 use \Exception as Exception;
 
+class ShellException extends Exception {
+  public $stdin;
+  public $stderr;
+
+  function __construct($message, $stdin = NULL, $stderr = NULL) {
+    parent::__construct($message);
+    $this->stdin = $stdin;
+    $this->stderr = $stderr;
+  }
+}
+
 class PipeHandler {
   public $pipe;
   public $data = '';
@@ -107,7 +118,7 @@ class Shell
 
     if ($options['throw_exception_on_nonzero'] && !$acceptable_return_value)
     {
-      throw new Exception("Error running '$command'. Unacceptable return value ($return_value)\nstdout:{$pipe_handlers[0]->data}\nstderr:{$pipe_handlers[1]->data}");
+      throw new ShellException("Error running '$command'. Unacceptable return value ($return_value)\nstdout:{$pipe_handlers[0]->data}\nstderr:{$pipe_handlers[1]->data}", $pipe_handlers[0]->data, $pipe_handlers[1]->data);
     }
     return array($pipe_handlers[0]->data, $pipe_handlers[1]->data);
   }
