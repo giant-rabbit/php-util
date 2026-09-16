@@ -42,10 +42,20 @@ class Shell
     }
     $options['print_command'] = Hash::fetch($options, 'print_command', FALSE);
     $options['input'] = Hash::fetch($options, 'input', NULL);
+    $options['pty'] = Hash::fetch($options, 'pty', FALSE);
     if ($options['print_command'])
     {
       print("$command\n");
     }
+    if ($options['pty'])
+    {
+      return $this->runWithPty($command, $options);
+    }
+    return $this->runWithRecording($command, $options);
+  }
+
+  function runWithRecording($command, $options)
+  {
     $descriptors_spec = array
     (
       0 => array('pipe', 'r'),
@@ -56,7 +66,7 @@ class Shell
     if ($process === FALSE)
     {
       throw new Exception("Unable to proc_open($command).");
-    } 
+    }
     stream_set_blocking($pipes[1], FALSE);
     stream_set_blocking($pipes[2], FALSE);
     if ($options['input'])
@@ -78,7 +88,7 @@ class Shell
         throw new Exception("Error running stream_select on pipe.");
       }
       if ($result > 0)
-      { 
+      {
         foreach ($read_streams as $read_stream)
         {
           $pipe_handler = $pipe_handlers[0];
@@ -121,5 +131,25 @@ class Shell
       throw new ShellException("Error running '$command'. Unacceptable return value ($return_value)\nstdout:{$pipe_handlers[0]->data}\nstderr:{$pipe_handlers[1]->data}", $pipe_handlers[0]->data, $pipe_handlers[1]->data);
     }
     return array($pipe_handlers[0]->data, $pipe_handlers[1]->data);
+  }
+
+  function runWithPty($command, $options)
+  {
+    $descriptors_spec = array(
+      0 => STDIN,
+      1 => STDOUT,
+      2 => STDERR,
+    );
+    $process = proc_open($command, $descriptors_spec, $pipes);
+    if ($process === FALSE)
+    {
+      throw new Exception("Unable to proc_open($command).");
+    }
+    $return_value = proc_close($process);
+    if ($options['throw_exception_on_nonzero'] && !in_array($return_value, $options['acceptable_return_values']))
+    {
+      throw new ShellException("Error running '$command'. Unacceptable return value ($return_value).");
+    }
+    return array('', '');
   }
 }
